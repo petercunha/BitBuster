@@ -1,7 +1,6 @@
 # BitBuster
 A cross-platform Instagram account cracker written in Go
 
----
 
 ## How to Use
 1. You need two files in the same directory as BitBuster.
