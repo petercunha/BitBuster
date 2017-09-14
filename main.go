@@ -14,8 +14,8 @@ import (
 
 // Constants
 const USERNAME string = "USERNAME_TO_HACK"
-const WORKERS int = 25
-const VERBOSE bool = false
+const WORKERS int     = 25
+const VERBOSE bool    = false
 
 // Variables
 var wg sync.WaitGroup
@@ -235,7 +235,7 @@ func checkConn(proxy string) bool {
 func welcomeMessage() {
 	fmt.Println(`
  __________________________________________
-/   BitBuster v1.0                         \
+/   BitBuster v1.5                         \
 |   Instagram Account Cracker              |
 |                                          |
 |   Written and maintained by Peter Cunha  |
